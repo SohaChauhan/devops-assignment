@@ -20,9 +20,7 @@ services:
 
   # User Service
   user-service:
-    build:
-      context: ./backend/user-service
-      dockerfile: Dockerfile
+    image: user-service:latest
     container_name: user-service
     restart: unless-stopped
     ports:
@@ -45,9 +43,7 @@ services:
 
   # Product Service
   product-service:
-    build:
-      context: ./backend/product-service
-      dockerfile: Dockerfile
+    image: product-service:latest
     container_name: product-service
     restart: unless-stopped
     ports:
@@ -68,9 +64,7 @@ services:
 
   # Order Service
   order-service:
-    build:
-      context: ./backend/order-service
-      dockerfile: Dockerfile
+    image: order-service:latest
     container_name: order-service
     restart: unless-stopped
     ports:
@@ -94,9 +88,7 @@ services:
 
   # Frontend
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: frontend:latest
     container_name: frontend
     restart: unless-stopped
     ports:
