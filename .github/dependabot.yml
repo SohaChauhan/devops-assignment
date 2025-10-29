@@ -1,0 +1,72 @@
+# Dependabot configuration for automated dependency updates
+version: 2
+updates:
+  # Backend services
+  - package-ecosystem: "npm"
+    directory: "/backend/user-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "devops-team"
+    labels:
+      - "dependencies"
+      - "user-service"
+
+  - package-ecosystem: "npm"
+    directory: "/backend/product-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "product-service"
+
+  - package-ecosystem: "npm"
+    directory: "/backend/order-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "order-service"
+
+  # Frontend
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "frontend"
+
+  # Docker
+  - package-ecosystem: "docker"
+    directory: "/backend/user-service"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/backend/product-service"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/backend/order-service"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "ci/cd"
+      - "dependencies"

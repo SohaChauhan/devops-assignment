@@ -1,0 +1,175 @@
+.orders-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.order-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.order-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.order-info h3 {
+  font-size: 1.4rem;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.order-date {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.order-customer {
+  color: #667eea;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.order-status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.order-status {
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-block;
+}
+
+.status-select {
+  padding: 8px 12px;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  background: white;
+}
+
+.order-items {
+  margin-bottom: 20px;
+}
+
+.order-items h4 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.order-item {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 15px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.item-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.item-quantity {
+  color: #666;
+  text-align: center;
+}
+
+.item-price {
+  font-weight: 600;
+  color: #667eea;
+  text-align: right;
+}
+
+.shipping-address {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.shipping-address h4 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.shipping-address p {
+  color: #666;
+  line-height: 1.5;
+}
+
+.order-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.payment-method {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.order-total {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #667eea;
+}
+
+@media (max-width: 768px) {
+  .order-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .order-status-section {
+    align-items: flex-start;
+  }
+
+  .order-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .item-quantity,
+  .item-price {
+    text-align: left;
+  }
+
+  .order-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+

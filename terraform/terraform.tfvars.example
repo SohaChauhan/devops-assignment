@@ -1,0 +1,20 @@
+# AWS Configuration
+aws_region = "us-east-1"
+
+# Environment
+environment = "production"
+
+# Project name
+project_name = "ecommerce-microservices"
+
+# Instance type (t2.micro is free tier eligible)
+instance_type = "t2.micro"
+
+# SSH public key - Replace with your actual public key
+# Generate with: ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+# Then copy from: cat ~/.ssh/id_rsa.pub
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC... your-email@example.com"
+
+# Docker registry (optional - leave empty to use local images)
+docker_registry = ""
+

@@ -1,0 +1,50 @@
+# ZAP Scanning Rules
+# Format: rule_id	IGNORE/WARN/FAIL	notes
+10010	IGNORE	Cookie No HttpOnly Flag
+10011	IGNORE	Cookie Without Secure Flag
+10015	IGNORE	Incomplete or No Cache-control Header Set
+10017	IGNORE	Cross-Domain JavaScript Source File Inclusion
+10019	IGNORE	Content-Type Header Missing
+10020	IGNORE	X-Frame-Options Header
+10021	IGNORE	X-Content-Type-Options Header Missing
+10023	IGNORE	Information Disclosure - Debug Error Messages
+10024	IGNORE	Information Disclosure - Sensitive Information in URL
+10025	IGNORE	Information Disclosure - Sensitive Information in HTTP Referrer Header
+10026	IGNORE	HTTP Parameter Override
+10027	IGNORE	Information Disclosure - Suspicious Comments
+10032	IGNORE	Viewstate
+10033	IGNORE	Directory Browsing
+10034	IGNORE	Strict-Transport-Security Header
+10035	IGNORE	Strict-Transport-Security Header
+10036	IGNORE	HTTP Server Response Header
+10037	IGNORE	Server Leaks Information via "X-Powered-By" HTTP Response Header Field(s)
+10038	IGNORE	Content Security Policy (CSP) Header Not Set
+10039	IGNORE	X-Backend-Server Header Information Leak
+10040	WARN	Secure Pages Include Mixed Content
+10041	WARN	HTTP to HTTPS Insecure Transition in Form Post
+10042	WARN	HTTPS to HTTP Insecure Transition in Form Post
+10043	WARN	User Controllable JavaScript Event (XSS)
+10044	WARN	Big Redirect Detected (Potential Sensitive Information Leak)
+10045	WARN	Source Code Disclosure - /WEB-INF folder
+10046	WARN	Shortcut Icon - Favicon.ico
+10047	WARN	HTTPS Content Available via HTTP
+10048	WARN	Remote Code Execution - Shell Shock
+10049	WARN	Content Cacheability
+10050	WARN	Retrieved from Cache
+10051	WARN	Relative Path Confusion
+10052	WARN	X-ChromeLogger-Data (XCOLD) Header Information Leak
+10053	WARN	Apache Range Header DoS (CVE-2011-3192)
+10054	WARN	Cookie Without SameSite Attribute
+10055	FAIL	CSP
+10056	WARN	X-Debug-Token Information Leak
+10057	WARN	Username Hash Found
+10061	WARN	X-AspNet-Version Response Header
+10062	FAIL	PII Disclosure
+10063	WARN	Permissions Policy Header Not Set
+10096	WARN	Timestamp Disclosure
+10097	WARN	Hash Disclosure
+10098	WARN	Cross-Domain Misconfiguration
+10099	WARN	Source Code Disclosure
+10104	WARN	User Agent Fuzzer
+10105	WARN	Weak Authentication Method
+

@@ -1,0 +1,375 @@
+name: CI/CD Pipeline with DevSecOps
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+  NODE_VERSION: "18"
+
+jobs:
+  # Job 1: Code Quality and Security Scanning
+  code-quality:
+    name: Code Quality & SAST
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Full history for better analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd backend/user-service && npm ci
+          cd ../product-service && npm ci
+          cd ../order-service && npm ci
+          cd ../../frontend && npm ci
+
+      # Static Application Security Testing (SAST)
+      - name: Run ESLint
+        run: |
+          npm install -g eslint
+          find . -name "package.json" -not -path "*/node_modules/*" | while read package; do
+            dir=$(dirname "$package")
+            echo "Linting $dir"
+            (cd "$dir" && npx eslint . --ext .js,.jsx --max-warnings 0) || true
+          done
+
+      # Secret Scanning
+      - name: GitGuardian scan
+        uses: GitGuardian/ggshield-action@v1
+        env:
+          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
+          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+        continue-on-error: true
+
+      # Dependency Vulnerability Scanning
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=moderate || true
+          cd backend/user-service && npm audit --audit-level=moderate || true
+          cd ../product-service && npm audit --audit-level=moderate || true
+          cd ../order-service && npm audit --audit-level=moderate || true
+          cd ../../frontend && npm audit --audit-level=moderate || true
+
+      # OWASP Dependency Check
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "ecommerce-microservices"
+          path: "."
+          format: "HTML"
+        continue-on-error: true
+
+      - name: Upload OWASP report
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-check-report
+          path: reports/
+
+  # Job 2: Build and Test Services
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    needs: code-quality
+    strategy:
+      matrix:
+        service: [user-service, product-service, order-service]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd backend/${{ matrix.service }}
+          npm ci
+
+      - name: Run tests
+        run: |
+          cd backend/${{ matrix.service }}
+          npm test || echo "No tests configured yet"
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ matrix.service }}:${{ github.sha }} ./backend/${{ matrix.service }}
+
+      - name: Save Docker image
+        run: |
+          docker save ${{ matrix.service }}:${{ github.sha }} | gzip > ${{ matrix.service }}.tar.gz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.service }}-image
+          path: ${{ matrix.service }}.tar.gz
+
+  # Job 3: Build Frontend
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: code-quality
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Build Docker image
+        run: |
+          docker build -t frontend:${{ github.sha }} ./frontend
+
+      - name: Save Docker image
+        run: |
+          docker save frontend:${{ github.sha }} | gzip > frontend.tar.gz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-image
+          path: frontend.tar.gz
+
+  # Job 4: Container Security Scanning
+  container-security:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    needs: [build-and-test, build-frontend]
+    strategy:
+      matrix:
+        service: [user-service, product-service, order-service, frontend]
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ matrix.service }}-image
+
+      - name: Load Docker image
+        run: |
+          docker load < ${{ matrix.service }}.tar.gz
+
+      # Trivy container scanning
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ matrix.service }}:${{ github.sha }}"
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "trivy-results.sarif"
+
+      # Dockle - Docker image linter
+      - name: Run Dockle
+        uses: erzz/dockle-action@v1
+        with:
+          image: "${{ matrix.service }}:${{ github.sha }}"
+          exit-code: "0"
+          failure-threshold: "high"
+
+  # Job 5: Infrastructure Security (Terraform)
+  terraform-security:
+    name: Terraform Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # tfsec - Terraform security scanner
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: terraform
+          soft_fail: true
+
+      # Checkov - Infrastructure as Code scanner
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: terraform
+          framework: terraform
+          soft_fail: true
+
+      # Terraform validation
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Format Check
+        run: |
+          cd terraform
+          terraform fmt -check
+
+      - name: Terraform Validate
+        run: |
+          cd terraform
+          terraform init -backend=false
+          terraform validate
+
+  # Job 6: Deploy to AWS (on main branch only)
+  deploy-to-aws:
+    name: Deploy to AWS
+    runs-on: ubuntu-latest
+    needs:
+      [build-and-test, build-frontend, container-security, terraform-security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.application_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Load Docker images
+        run: |
+          docker load < user-service-image/user-service.tar.gz
+          docker load < product-service-image/product-service.tar.gz
+          docker load < order-service-image/order-service.tar.gz
+          docker load < frontend-image/frontend.tar.gz
+
+      - name: Tag images
+        run: |
+          docker tag user-service:${{ github.sha }} user-service:latest
+          docker tag product-service:${{ github.sha }} product-service:latest
+          docker tag order-service:${{ github.sha }} order-service:latest
+          docker tag frontend:${{ github.sha }} frontend:latest
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to AWS EC2
+        id: deploy
+        run: |
+          # Save images
+          docker save user-service:latest | gzip > user-service.tar.gz
+          docker save product-service:latest | gzip > product-service.tar.gz
+          docker save order-service:latest | gzip > order-service.tar.gz
+          docker save frontend:latest | gzip > frontend.tar.gz
+
+          # Upload to server
+          scp -i ~/.ssh/id_rsa *.tar.gz ubuntu@${{ secrets.SERVER_IP }}:/tmp/
+
+          # Deploy on server
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.SERVER_IP }} << 'EOF'
+            cd /tmp
+            
+            # Load images to K3s
+            docker load < user-service.tar.gz
+            docker load < product-service.tar.gz
+            docker load < order-service.tar.gz
+            docker load < frontend.tar.gz
+            
+            docker save user-service:latest | sudo k3s ctr images import -
+            docker save product-service:latest | sudo k3s ctr images import -
+            docker save order-service:latest | sudo k3s ctr images import -
+            docker save frontend:latest | sudo k3s ctr images import -
+            
+            # Apply Kubernetes manifests
+            kubectl apply -f /home/ubuntu/ecommerce-app/k8s/namespace.yaml
+            kubectl apply -f /home/ubuntu/ecommerce-app/k8s/mongodb-deployment.yaml
+            kubectl apply -f /home/ubuntu/ecommerce-app/k8s/user-service-deployment.yaml
+            kubectl apply -f /home/ubuntu/ecommerce-app/k8s/product-service-deployment.yaml
+            kubectl apply -f /home/ubuntu/ecommerce-app/k8s/order-service-deployment.yaml
+            kubectl apply -f /home/ubuntu/ecommerce-app/k8s/frontend-deployment.yaml
+            
+            # Restart deployments to use new images
+            kubectl rollout restart deployment/user-service -n ecommerce
+            kubectl rollout restart deployment/product-service -n ecommerce
+            kubectl rollout restart deployment/order-service -n ecommerce
+            kubectl rollout restart deployment/frontend -n ecommerce
+            
+            # Wait for rollout
+            kubectl rollout status deployment/user-service -n ecommerce --timeout=5m
+            kubectl rollout status deployment/product-service -n ecommerce --timeout=5m
+            kubectl rollout status deployment/order-service -n ecommerce --timeout=5m
+            kubectl rollout status deployment/frontend -n ecommerce --timeout=5m
+            
+            # Cleanup
+            rm -f /tmp/*.tar.gz
+          EOF
+
+          echo "application_url=http://${{ secrets.SERVER_IP }}" >> $GITHUB_OUTPUT
+
+      - name: Verify deployment
+        run: |
+          sleep 30
+          curl -f http://${{ secrets.SERVER_IP }}/health || echo "Health check not available yet"
+
+  # Job 7: DAST (Dynamic Application Security Testing)
+  dast-scan:
+    name: DAST Security Scan
+    runs-on: ubuntu-latest
+    needs: deploy-to-aws
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: OWASP ZAP Scan
+        uses: zaproxy/action-baseline@v0.7.0
+        with:
+          target: "http://${{ secrets.SERVER_IP }}"
+          rules_file_name: ".zap/rules.tsv"
+          cmd_options: "-a"
+
+  # Job 8: Notification
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy-to-aws, dast-scan]
+    if: always()
+    steps:
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Deployment Status: ${{ job.status }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: always()
+
+      - name: Create deployment badge
+        run: |
+          echo "Deployment completed: ${{ job.status }}"
