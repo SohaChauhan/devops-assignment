@@ -2,6 +2,7 @@
 node_modules/
 /.pnp
 .pnp.js
+# Note: package-lock.json should be committed for CI/CD
 
 # Testing
 /coverage

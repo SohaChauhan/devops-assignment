@@ -3,6 +3,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+# Note: package-lock.json should be committed for CI/CD
 
 # Environment variables
 .env
