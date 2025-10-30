@@ -337,17 +337,85 @@ Run installation again:
 npm run install-all
 ```
 
-## 🚀 Production Deployment
+## 🔄 CI/CD Pipeline
 
-For production deployment:
+This project includes an automated CI/CD pipeline using **GitHub Actions** that:
 
-1. Update all `.env` files with production values
-2. Change `JWT_SECRET` to a secure random string
-3. Update MongoDB URIs to production database
-4. Build frontend: `cd frontend && npm run build`
-5. Use process managers like PM2 for backend services
-6. Set up reverse proxy (Nginx) for routing
-7. Enable HTTPS with SSL certificates
+### Automated on Every Push
+- ✅ **Code Quality Check** - Runs ESLint on all services
+- ✅ **Security Audit** - npm audit for vulnerable dependencies
+- ✅ **Build & Test** - Builds all Docker images
+- ✅ **Container Security Scan** - Trivy scans for vulnerabilities
+- ✅ **Terraform Validation** - Validates infrastructure code
+
+### Automated on Push to Main
+- ✅ **Publish to GitHub Container Registry** - Publishes Docker images
+- 📦 Images available at: `ghcr.io/YOUR_USERNAME/devops-assignment/SERVICE_NAME:latest`
+
+### Pipeline Status
+Check the **Actions** tab in GitHub to see pipeline runs and results.
+
+## 🚀 AWS Deployment
+
+Deployment to AWS is done **manually using Terraform**. See [`DEPLOYMENT-GUIDE.md`](./DEPLOYMENT-GUIDE.md) for detailed instructions.
+
+### Quick Deployment Steps
+
+1. **Configure AWS credentials**
+```bash
+aws configure
+```
+
+2. **Deploy infrastructure with Terraform**
+```bash
+cd terraform
+terraform init
+terraform apply
+```
+
+3. **Pull and deploy Docker images**
+```bash
+# SSH into the server (IP from Terraform output)
+ssh -i ecommerce-key.pem ubuntu@SERVER_IP
+
+# Pull images from GitHub Container Registry
+docker pull ghcr.io/YOUR_USERNAME/devops-assignment/user-service:latest
+docker pull ghcr.io/YOUR_USERNAME/devops-assignment/product-service:latest
+docker pull ghcr.io/YOUR_USERNAME/devops-assignment/order-service:latest
+docker pull ghcr.io/YOUR_USERNAME/devops-assignment/frontend:latest
+
+# Deploy to Kubernetes
+kubectl apply -f ~/ecommerce-app/k8s/
+```
+
+**Access your app at:** `http://YOUR_SERVER_IP`
+
+For complete deployment instructions, see **[DEPLOYMENT-GUIDE.md](./DEPLOYMENT-GUIDE.md)**
+
+## 🐳 Docker & Kubernetes
+
+This application is fully containerized:
+
+- **Docker** - Each service has its own Dockerfile
+- **Docker Compose** - For local development
+- **Kubernetes (K3s)** - For production deployment on AWS
+- **GitHub Container Registry** - For image storage
+
+### Local Development with Docker
+
+```bash
+# Build all images
+docker-compose build
+
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+```
 
 ## 📄 License
 
