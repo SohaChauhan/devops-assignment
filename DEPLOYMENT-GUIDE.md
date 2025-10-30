@@ -32,11 +32,11 @@ Your CI/CD pipeline automatically publishes images to GitHub Container Registry.
 # Login to GitHub Container Registry
 echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 
-# Pull the images
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/user-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/product-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/order-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/frontend:latest
+# Pull the images (note: username must be lowercase)
+docker pull ghcr.io/your_username/devops-assignment/user-service:latest
+docker pull ghcr.io/your_username/devops-assignment/product-service:latest
+docker pull ghcr.io/your_username/devops-assignment/order-service:latest
+docker pull ghcr.io/your_username/devops-assignment/frontend:latest
 ```
 
 **Note:** Replace `YOUR_USERNAME` with your GitHub username and `YOUR_GITHUB_TOKEN` with your personal access token.
@@ -82,17 +82,17 @@ ssh -i ecommerce-key.pem ubuntu@$SERVER_IP
 # On the server, login to GitHub Container Registry
 echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
 
-# Pull images on the server
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/user-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/product-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/order-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/frontend:latest
+# Pull images on the server (use lowercase username)
+docker pull ghcr.io/sohachauhan/devops-assignment/user-service:latest
+docker pull ghcr.io/sohachauhan/devops-assignment/product-service:latest
+docker pull ghcr.io/sohachauhan/devops-assignment/order-service:latest
+docker pull ghcr.io/sohachauhan/devops-assignment/frontend:latest
 
 # Tag images for K3s
-docker tag ghcr.io/YOUR_USERNAME/devops-assignment/user-service:latest user-service:latest
-docker tag ghcr.io/YOUR_USERNAME/devops-assignment/product-service:latest product-service:latest
-docker tag ghcr.io/YOUR_USERNAME/devops-assignment/order-service:latest order-service:latest
-docker tag ghcr.io/YOUR_USERNAME/devops-assignment/frontend:latest frontend:latest
+docker tag ghcr.io/sohachauhan/devops-assignment/user-service:latest user-service:latest
+docker tag ghcr.io/sohachauhan/devops-assignment/product-service:latest product-service:latest
+docker tag ghcr.io/sohachauhan/devops-assignment/order-service:latest order-service:latest
+docker tag ghcr.io/sohachauhan/devops-assignment/frontend:latest frontend:latest
 
 # Import images to K3s
 docker save user-service:latest | sudo k3s ctr images import -
@@ -148,14 +148,14 @@ To deploy the update:
 # SSH into your server
 ssh -i ecommerce-key.pem ubuntu@$SERVER_IP
 
-# Pull latest images
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/user-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/product-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/order-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/frontend:latest
+# Pull latest images (use lowercase username)
+docker pull ghcr.io/sohachauhan/devops-assignment/user-service:latest
+docker pull ghcr.io/sohachauhan/devops-assignment/product-service:latest
+docker pull ghcr.io/sohachauhan/devops-assignment/order-service:latest
+docker pull ghcr.io/sohachauhan/devops-assignment/frontend:latest
 
 # Tag and import to K3s
-docker tag ghcr.io/YOUR_USERNAME/devops-assignment/user-service:latest user-service:latest
+docker tag ghcr.io/sohachauhan/devops-assignment/user-service:latest user-service:latest
 docker save user-service:latest | sudo k3s ctr images import -
 
 # Repeat for other services...

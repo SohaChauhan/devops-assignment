@@ -350,7 +350,7 @@ This project includes an automated CI/CD pipeline using **GitHub Actions** that:
 
 ### Automated on Push to Main
 - ✅ **Publish to GitHub Container Registry** - Publishes Docker images
-- 📦 Images available at: `ghcr.io/YOUR_USERNAME/devops-assignment/SERVICE_NAME:latest`
+- 📦 Images available at: `ghcr.io/sohachauhan/devops-assignment/SERVICE_NAME:latest`
 
 ### Pipeline Status
 Check the **Actions** tab in GitHub to see pipeline runs and results.
@@ -378,11 +378,11 @@ terraform apply
 # SSH into the server (IP from Terraform output)
 ssh -i ecommerce-key.pem ubuntu@SERVER_IP
 
-# Pull images from GitHub Container Registry
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/user-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/product-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/order-service:latest
-docker pull ghcr.io/YOUR_USERNAME/devops-assignment/frontend:latest
+# Pull images from GitHub Container Registry (use lowercase username)
+docker pull ghcr.io/sohachauhan/devops-assignment/user-service:latest
+docker pull ghcr.io/sohachauhan/devops-assignment/product-service:latest
+docker pull ghcr.io/sohachauhan/devops-assignment/order-service:latest
+docker pull ghcr.io/sohachauhan/devops-assignment/frontend:latest
 
 # Deploy to Kubernetes
 kubectl apply -f ~/ecommerce-app/k8s/

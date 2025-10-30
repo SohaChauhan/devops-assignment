@@ -185,6 +185,7 @@ jobs:
     name: Publish Docker Images
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend, security-scan, terraform-validate]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: read
       packages: write
@@ -213,19 +214,25 @@ jobs:
 
       - name: Tag and push image
         run: |
-          IMAGE_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}:latest
-          IMAGE_TAG_SHA=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}:${{ github.sha }}
+          # Convert to lowercase for GitHub Container Registry
+          REPO_LOWERCASE=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=${{ env.REGISTRY }}/${REPO_LOWERCASE}/${{ matrix.service }}:latest
+          IMAGE_TAG_SHA=${{ env.REGISTRY }}/${REPO_LOWERCASE}/${{ matrix.service }}:${{ github.sha }}
 
           docker tag ${{ matrix.service }}:latest $IMAGE_TAG
           docker tag ${{ matrix.service }}:latest $IMAGE_TAG_SHA
 
           docker push $IMAGE_TAG
           docker push $IMAGE_TAG_SHA
+          
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_tag_sha=${IMAGE_TAG_SHA}" >> $GITHUB_OUTPUT
 
       - name: Image published
         run: |
-          echo "✅ Published: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}:latest"
-          echo "✅ Published: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}:${{ github.sha }}"
+          REPO_LOWERCASE=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+          echo "✅ Published: ${{ env.REGISTRY }}/${REPO_LOWERCASE}/${{ matrix.service }}:latest"
+          echo "✅ Published: ${{ env.REGISTRY }}/${REPO_LOWERCASE}/${{ matrix.service }}:${{ github.sha }}"
 
   # Job 7: Summary
   summary:
