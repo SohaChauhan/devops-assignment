@@ -185,7 +185,6 @@ jobs:
     name: Publish Docker Images
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend, security-scan, terraform-validate]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: read
       packages: write
@@ -216,10 +215,10 @@ jobs:
         run: |
           IMAGE_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}:latest
           IMAGE_TAG_SHA=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}:${{ github.sha }}
-          
+
           docker tag ${{ matrix.service }}:latest $IMAGE_TAG
           docker tag ${{ matrix.service }}:latest $IMAGE_TAG_SHA
-          
+
           docker push $IMAGE_TAG
           docker push $IMAGE_TAG_SHA
 
